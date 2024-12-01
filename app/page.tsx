@@ -1,101 +1,213 @@
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
 import Image from "next/image";
+import Autoplay from "embla-carousel-autoplay";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
+import Link from "next/link";
+import { Star } from "lucide-react";
+import { useEstatesPages } from "@/hooks/use-estates";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { Naira } from "@/utils";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+import EstateCard from "@/components/estate-card";
+import { IEstate } from "@/lib/interfaces/estate";
+import { getCurrent } from "@/lib/server";
 
-export default function Home() {
+export default async function Home() {
+  // const { estates, hasNextPage, hasPrevPage, loadNext, loadPrev, loading } =
+  //   useEstatesPages();
+
+  const user = await getCurrent()
+
+  const estates: IEstate[] =[]
+  const loading = false;
+  const hasNextPage = false;
+  const hasPrevPage = false;
+  const loadNext = () => {};
+  const loadPrev = () => {};
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="w-full h-full py-[75px] container">
+      {!loading && estates.length > 0 && (
+        <Carousel
+          className="w-full"
+          plugins={[
+            Autoplay({
+              delay: 5000,
+            }),
+          ]}
+        >
+          <CarouselContent className="w-full">
+            {estates.map((house, index) => (
+              <CarouselItem
+                key={index}
+                className="flex flex-col w-full md:flex-row justify-start items-start gap-4"
+              >
+                <div className=" w-full group basis-1/2 flex flex-1 relative">
+                  <div className="relative w-full  h-[300px] md:h-[400px] xl:h-[500px]">
+                    <Image
+                      src={house.images[0]}
+                      alt={house.title}
+                      fill
+                      className="object-cover"
+                    />
+                    <div className="absolute bottom-0 left-0 w-full py-4 bg-gradient-to-t from-neutral-950/90 to-neutral-800/10 opacity-0 group-hover:opacity-100 transition-opacity duration-400 ease-in">
+                      <div className="px-4 py-6">
+                        <h1 className="carousel-item-text text-2xl md:text-3xl font-semibold text-white">
+                          {house.title}
+                        </h1>
+                        <p className="text-lg font-medium carousel-item-text text-neutral-200">
+                          {Naira.format(house.price)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 h-full md:p-6 gap-3 basis-1/3 flex flex-col w-full md:mt-0">
+                  <div className="flex flex-wrap justify-start items-center space-x-2">
+                    <h3 className="text-sm sm:text-base md:text-lg font-semibold text-neutral-500">
+                      Category
+                    </h3>
+                    <h3 className="text-sm sm:text-base md:text-lg font-medium text-neutral-800">
+                      {house.category}
+                    </h3>
+                  </div>
+                  <div className="flex justify-start flex-wrap items-center space-x-2">
+                    <h3 className="text-sm sm:text-base md:text-lg font-semibold text-neutral-500">
+                      Location
+                    </h3>
+                    <h3 className="text-sm sm:text-base md:text-lg font-medium text-neutral-800">
+                      {house.location}
+                    </h3>
+                  </div>
+                  <div className="flex justify-start flex-wrap items-center space-x-2">
+                    <h3 className="text-sm sm:text-base md:text-lg font-semibold text-neutral-500">
+                      Agent Info
+                    </h3>
+                    <h3 className="text-base sm:text-lg md:text-lg font-medium text-neutral-800">
+                      {house.agent.organization_phone}
+                    </h3>
+                  </div>
+                  <div className="flex justify-start flex-wrap items-center space-x-2">
+                    <h3 className="text-sm sm:text-base md:text-lg font-semibold text-neutral-500">
+                      Ratings
+                    </h3>
+                    <div className="flex justify-center items-center space-x-1">
+                      <span className="text-base sm:text-lg md:text-lg font-medium text-neutral-800">
+                        {parseFloat(house.ratings.toFixed(1))}
+                      </span>
+                      <Star
+                        className="text-[#f2dd1d] h-7 w-7"
+                        fill="#f2dd1d"
+                        stroke="currentColor"
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-4 flex justify-between items-center flex-wrap gap-4">
+                      <Link
+                        href={`/${house._id}`}
+                        className="w-auto px-4 py-2.5 md:py-3 flex transition-all hover:bg-neutral-700 shadow-lg duration-400 rounded-lg ease-in bg-neutral-800 text-neutral-200 text-center font-medium "
+                      >
+                        View Details
+                      </Link>
+                    <button className="px-4 py-2.5 md:py-3 md:px-7 flex transition-all rounded-lg hover:bg-neutral-300 shadow-lg duration-400 ease-in bg-neutral-200">
+                      <Link
+                        href="/"
+                        className="w-full text-neutral-900 text-center font-medium "
+                      >
+                        Buy Now
+                      </Link>
+                    </button>
+                  </div>
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
+      )}
+      {estates.length === 0 && (
+        <div className="grid space-y-4 mt-5  w-full h-[500px] grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="cols-span-2">
+            <Skeleton className="w-full h-[300px] md:h-[400px] xl:h-[500px]" />
+          </div>
+          <div className="cols-span-1 space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <Skeleton className="w-2/3 h-10 " />
+              <Skeleton className="w-full h-10 " />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Skeleton className="w-2/3 h-10 " />
+              <Skeleton className="w-full h-10 " />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Skeleton className="w-2/3 h-10 " />
+              <Skeleton className="w-full h-10 " />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Skeleton className="w-2/3 h-10 " />
+              <Skeleton className="w-full h-10 " />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Skeleton className="w-10 h-10 " />
+              <Skeleton className="w-20 h-10 " />
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      )}
+
+      <div className={cn("mt-10", loading && "sm:mt-36 md:mt-0")}>
+        <div className="flex my-5 mt-4">
+          <h1 className="text-xl md:text-2xl justify-start items-start font-semibold">
+            Available Properties
+          </h1>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {!loading &&
+            estates.length > 0 &&
+            estates.map((item) => <EstateCard key={item._id} item={item} />)}
+
+          {estates.length === 0 &&
+            [1, 2, 3, 4, 5].map((item, index) => (
+              <div key={index} className="w-full sm:w-[230px] space-y-2">
+                <Skeleton className="w-full h-[200px]" />
+                <div className="flex flex-col space-y-2">
+                  <Skeleton className="h-8 w-full" />
+                  <Skeleton className="h-8 w-4/5" />
+                  <Skeleton className="h-8 w-4/5" />
+                </div>
+              </div>
+            ))}
+        </div>
+      </div>
+
+      {estates.length > 0 && (
+        <div className="mt-8 mb-8 w-full justify-center items-center flex">
+          <Pagination>
+            <PaginationContent className="max-w-2xl flex justify-between items-center space-x-8">
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={loadPrev}
+                  disabled={!hasPrevPage}
+                />
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationNext onClick={loadNext} disabled={!hasNextPage} />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
     </div>
   );
 }
