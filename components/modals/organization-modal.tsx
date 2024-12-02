@@ -4,7 +4,6 @@ import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useOrganizationList } from "@clerk/nextjs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,7 +43,6 @@ const formSchema = z.object({
 const OrganizationModal = () => {
   const { isOpen, onClose, type } = useModal();
 
-  const organization = useOrganizationList();
 
   const isModalOpen = isOpen && type === "becomeAgent";
 

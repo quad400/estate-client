@@ -27,7 +27,6 @@ import { post } from "@/lib/endpoints";
 import { Textarea } from "../ui/textarea";
 import { toast } from "sonner";
 import { useFeedbacks } from "@/hooks/use-feedbacks";
-import { useUser } from "@clerk/nextjs";
 import { IFeedbacks } from "@/lib/interfaces/estate";
 import { IUser } from "@/lib/interfaces/user";
 import { useCreateFeedback } from "@/hooks/use-feedback";
@@ -46,7 +45,6 @@ const FeedbackModal = () => {
   const { newFeedback, feedbacks, setFeedbacks } = useFeedbacks(data?.data); // Assuming data is passed as the estate ID
   const isModalOpen = isOpen && type === "feedback";
   const router = useRouter();
-  const { user } = useUser();
   const { mutateAsync } = useCreateFeedback();
 
   const form = useForm({

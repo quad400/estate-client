@@ -9,8 +9,6 @@ import {
 } from "@/components/ui/pagination";
 import Link from "next/link";
 import { useModal } from "@/hooks/use-modal-store";
-import { useFeedbacks } from "@/hooks/use-feedbacks";
-import { useAuth } from "@clerk/nextjs";
 import Image from "next/image";
 import { dateHandler } from "@/utils";
 import { Skeleton } from "./ui/skeleton";

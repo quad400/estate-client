@@ -3,7 +3,6 @@ import "@smastrom/react-rating/style.css";
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
-import { ClerkProvider } from "@clerk/nextjs";
 import Navbar from "@/components/nav-bar";
 import Footer from "@/components/footer";
 import { ModalProvider } from "@/components/providers/ModalProvider";
@@ -28,7 +27,6 @@ export default function RootLayout({
 }>) {
   return (
     <QueryProvider>
-      <ClerkProvider>
         <html lang="en">
           <body className={`${poppins.className} antialiased`}>
             <Navbar />
@@ -38,7 +36,6 @@ export default function RootLayout({
             <Toaster />
           </body>
         </html>
-      </ClerkProvider>
     </QueryProvider>
   );
 }
