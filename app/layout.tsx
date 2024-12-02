@@ -33,7 +33,7 @@ export default function RootLayout({
           <body className={`${poppins.className} antialiased`}>
             <Navbar />
             <ModalProvider />
-            <main className="w-full min-h-screen bg-neutral-50">{children}</main>
+            <main className="min-h-screen bg-neutral-50 max-w-screen-2xl">{children}</main>
             <Footer />
             <Toaster />
           </body>

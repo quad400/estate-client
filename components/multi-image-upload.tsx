@@ -16,7 +16,6 @@ const MultiImageUpload = ({ values, onChange }: ImageUploadProps) => {
     setImages(values);
   }, [values]);
 
-  console.log("Values", values);
 
   return (
     <div className="flex justify-start items-end space-x-3 flex-wrap">

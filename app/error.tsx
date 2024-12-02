@@ -1,31 +1,33 @@
-'use client' // Error components must be Client Components
- 
-import { useEffect } from 'react'
- 
+"use client"; // Error components must be Client Components
+
+import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
+
 export default function Error({
   error,
   reset,
 }: {
-  error: Error & { digest?: string }
-  reset: () => void
+  error: Error & { digest?: string };
+  reset: () => void;
 }) {
   useEffect(() => {
     // Log the error to an error reporting service
-    console.error(error)
-  }, [error])
- 
+    console.error(error);
+  }, [error]);
+
   return (
-    <div className='h-full w-full justify-center items-center'>
-      <h2 className='text-4xl font-semibold text-zinc-300'>Something went wrong!</h2>
-      <button
-    
+    <div className="h-screen w-full px-4 pt-40 justify-center items-center">
+      <h2 className="text-2xl font-semibold mb-6 text-neutral-700">
+        Something went wrong!
+      </h2>
+      <Button
         onClick={
           // Attempt to recover by trying to re-render the segment
           () => reset()
         }
       >
         Try again
-      </button>
+      </Button>
     </div>
-  )
+  );
 }

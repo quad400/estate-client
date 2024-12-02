@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 export type ModalType =
-  "becomeAgent"| "feedback"
+  "becomeAgent"| "feedback" | "deleteEstate"
 
 interface ModalData {
   data?: any

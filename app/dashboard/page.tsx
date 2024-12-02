@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Plus, Trash } from "lucide-react";
+import { Edit, Loader, Plus, Trash } from "lucide-react";
 import Image from "next/image";
 import {
   Pagination,
@@ -21,24 +21,35 @@ import Link from "next/link";
 import { useEstates } from "@/hooks/use-estate";
 import { Naira } from "@/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useGetMyEstates } from "@/hooks/use-estatee";
+// import { useGetMyEstates } from "@/hooks/use-estatee";
 import { IEstate } from "@/lib/interfaces/estate";
 import { useState } from "react";
+import { toast } from "sonner";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { getMyEstates } from "@/lib/server";
+import { useDeleteEstate } from "@/hooks/use-estatee";
+import { useModal } from "@/hooks/use-modal-store";
 
 const Page = () => {
 
-  const { query, page, setPage } = useGetMyEstates();
 
-  const { data, isPending, isPlaceholderData, isError, error } = query;
+  const [page, setPage] = useState(1);
+  const {onOpen} = useModal()
+  
+  const {mutateAsync} = useDeleteEstate()
 
-  function handleDelete(estateId: string) {
-    // deleteEstate(estateId);
+  const { data, isPending, isPlaceholderData, isFetched, isFetching } =useQuery({
+    queryKey: ["my-estates", page],
+    queryFn: async () => await getMyEstates(page),
+    
+    placeholderData: keepPreviousData,
+  });
+
+
+  async function handleDelete(estateId: string) {
+    onOpen("deleteEstate", {data: estateId})
   }
-
-  console.log(data);
-
-  // const estates = data?.data || ([] as IEstate[]);
-
+  
   return (
     <div className="w-full container">
       <div className="flex justify-end w-full items-start -mt-10">
@@ -52,6 +63,7 @@ const Page = () => {
           </p>
         </Link>
       </div>
+ 
       <Table className="w-full border-collapse mt-2 mb-5 border rounded-2xl">
         <TableHeader className="bg-neutral-200 w-full rounded-t-3xl">
           <TableRow>
@@ -64,7 +76,7 @@ const Page = () => {
         </TableHeader>
         <TableBody>
           {!isPending &&
-            [].map((item: IEstate) => (
+            data?.items.map((item: IEstate) => (
               <TableRow key={item._id}>
                 <TableCell>
                   <Link
@@ -84,7 +96,6 @@ const Page = () => {
                     </h3>
                   </Link>
                 </TableCell>
-                {/* <TableCell>{item.price}</TableCell> */}
                 <TableCell>{Naira.format(item.price)}</TableCell>
                 <TableCell>
                   <Link
@@ -128,32 +139,43 @@ const Page = () => {
             ))}
         </TableBody>
       </Table>
-
-      {[].length > 0 && (
+      {isFetching && (
+        <div className="flex justify-end items-end">
+          <Loader className="animate-spin h-4 w-4 text-neutral-600" />
+        </div>
+      )}
+      {data?.items.length > 0 && (
         <div className="mt-4 mb-8 w-full justify-center items-center flex">
           <Pagination>
             <PaginationContent className="max-w-2xl flex justify-between items-center space-x-8">
               <PaginationItem>
                 <PaginationPrevious
-                  onClick={}
-                  // disabled={!hasPrevPage}
+                  onClick={() => setPage((old) => Math.max(old - 1, 0))}
+                  disabled={page === 1}
                 />
               </PaginationItem>
               <PaginationItem>
-                {/* <PaginationNext onClick={loadNext} disabled={!hasNextPage} /> */}
+                <PaginationNext
+                  onClick={() => {
+                    if (!isPlaceholderData && data.hasNextPage) {
+                      setPage((old) => old + 1);
+                    }
+                  }}
+                  disabled={isPlaceholderData || !data?.hasNextPage}
+                />
               </PaginationItem>
             </PaginationContent>
           </Pagination>
         </div>
       )}
 
-      {/* {[].length === 0 && !isPending && (
+      {data?.items.length === 0 && isFetched && (
         <div className="flex w-full justify-center items-center mt-8">
           <p className="text-base sm:text-lg font-semibold text-neutral-800 text-center">
             Agent have not uploaded any estate yet
           </p>
         </div>
-      )} */}
+      )}
     </div>
   );
 };

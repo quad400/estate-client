@@ -41,7 +41,7 @@ const formSchema = z.object({
 const Page = () => {
   const router = useRouter();
 
-  const { mutate } = useCreateEstate();
+  const { mutateAsync } = useCreateEstate();
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -57,7 +57,7 @@ const Page = () => {
   const isLoading = form.formState.isSubmitting;
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    mutate(values);
+    await mutateAsync(values);
     router.refresh();
     form.reset();
     form.setValue("images", []);

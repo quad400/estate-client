@@ -7,20 +7,11 @@ import { cn } from "@/lib/utils";
 import { useModal } from "@/hooks/use-modal-store";
 import { useUser } from "@/hooks/use-auth";
 import UserAvatar from "./user-avatar";
-
-const navItenm = [
-  {
-    label: "Become Agent",
-    href: "/",
-  },
-];
+import { Skeleton } from "./ui/skeleton";
 
 const Navbar = () => {
-  const { data, isLoading, isFetched } = useUser();
+  const { data, isLoading, isFetched, isPending } = useUser();
 
-  const isSignedIn = false;
-  console.log(data);
-  const orgId = "";
 
   const { onOpen } = useModal();
   return (
@@ -58,7 +49,9 @@ const Navbar = () => {
         </div>
 
         <div>
-          {isFetched && data ? (
+          {isPending ? (
+            <Skeleton className="h-10 w-10 rounded-full" />
+          ) : isFetched && data ? (
             <UserAvatar user={data} />
           ) : (
             // <UserButton />

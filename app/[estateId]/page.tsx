@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 import {
   Carousel,
@@ -14,11 +14,24 @@ import EstateCard from "@/components/estate-card";
 import Feedback from "@/components/feedback";
 import EstateId from "@/components/estate-id";
 import { useEstatesPages } from "@/hooks/use-estates";
+import { useGetEstate } from "@/hooks/use-estatee";
+import { IEstate } from "@/lib/interfaces/estate";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { getCurrent, getEstates } from "@/lib/server";
+
+
 
 const Page = ({ params }: { params: { estateId: string } }) => {
+  const [page, setPage] = useState(1);
 
-  
-  const { loading, estates } = useEstatesPages();
+  const { data, isPending, isPlaceholderData, isFetched, isFetching } =
+    useQuery({
+      queryKey: ["estates", page],
+      queryFn: async () => await getEstates(page),
+
+      placeholderData: keepPreviousData,
+    });
+
 
   return (
     <div className="w-full h-full py-[75px]">
@@ -31,7 +44,7 @@ const Page = ({ params }: { params: { estateId: string } }) => {
           </h2>
         </div>
         <div>
-          {loading && estates.length === 0 && (
+          {isFetching && (
             <div className="w-full sm:w-[230px] space-y-2">
               <Skeleton className="w-full h-[200px]" />
               <div className="flex flex-col space-y-2">
@@ -44,14 +57,14 @@ const Page = ({ params }: { params: { estateId: string } }) => {
         </div>
 
         <div className="hidden gap-3 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {estates.map((item) => (
+          {isFetched && data?.items.map((item: IEstate) => (
             <EstateCard key={item._id} item={item} />
           ))}
         </div>
 
         <Carousel className="flex sm:hidden justify-center items-center mt-4">
           <CarouselContent className="w-full space-x-4 py-4">
-            {estates.map((item, index) => (
+            {isFetched && data?.items.map((item:IEstate, index: number) => (
               <CarouselItem
                 key={item._id}
                 className="flex flex-col basis-4/5 w-11/12 shadow"

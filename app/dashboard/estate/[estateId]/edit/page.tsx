@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { patch } from "@/lib/endpoints";
 import MultiImageUpload from "@/components/multi-image-upload";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useGetEstate, useUpdateEstate } from "@/hooks/use-estatee";
 
 const formSchema = z.object({
   title: z.string().min(1, {
@@ -43,7 +44,9 @@ const formSchema = z.object({
 
 const Page = ({ params }: { params: { estateId: string } }) => {
   const router = useRouter();
-  const { loading, estate } = useEstates(params.estateId);
+  const { data, isFetching } = useGetEstate(params.estateId);
+
+  const { mutateAsync, isPending } = useUpdateEstate();
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -59,22 +62,19 @@ const Page = ({ params }: { params: { estateId: string } }) => {
   const isLoading = form.formState.isSubmitting;
 
   useEffect(() => {
-    if (estate) {
-      form.setValue("title", estate.title);
-      // @ts-expect-error
-      form.setValue("images", estate.images);
-      form.setValue("location", estate.location);
-      form.setValue("category", estate.category);
-      form.setValue("price", estate.price.toString());
-      form.setValue("details", estate.details || "");
+    if (data) {
+      form.setValue("title", data.title);
+      form.setValue("images", data.images);
+      form.setValue("location", data.location);
+      form.setValue("category", data.category);
+      form.setValue("price", data.price.toString());
+      form.setValue("details", data.details || "");
     }
-  }, [estate]);
+  }, [data]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await patch(`/estates/${params.estateId}`, values);
-      toast.success("Estate updated successfully");
-      router.refresh();
+      await mutateAsync({ estateId: params.estateId, values });
     } catch (error) {
       toast.error("Failed to update product");
       console.log(error);
@@ -83,7 +83,7 @@ const Page = ({ params }: { params: { estateId: string } }) => {
 
   return (
     <div className="w-full h-full container mb-6">
-      {estate && !loading && (
+      {data && !isFetching && (
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="flex flex-col justify-start items-start max-w-2xl">
@@ -215,7 +215,7 @@ const Page = ({ params }: { params: { estateId: string } }) => {
           </form>
         </Form>
       )}
-      {loading && !estate && (
+      {isFetching && (
         <div className="w-full">
           <div className="flex container flex-col justify-start space-y-2 items-start">
             <Skeleton className="h-[200px] w-[200px]" />

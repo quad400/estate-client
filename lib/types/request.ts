@@ -23,3 +23,9 @@ export type CreateEstateType = {
   category: string;
   details: string;
 };
+
+
+export type CreateFeedbackType = {
+  rate: number;
+  comment: string
+}

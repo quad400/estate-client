@@ -30,6 +30,7 @@ import { useFeedbacks } from "@/hooks/use-feedbacks";
 import { useUser } from "@clerk/nextjs";
 import { IFeedbacks } from "@/lib/interfaces/estate";
 import { IUser } from "@/lib/interfaces/user";
+import { useCreateFeedback } from "@/hooks/use-feedback";
 
 const formSchema = z.object({
   rate: z.number().min(1, {
@@ -46,6 +47,7 @@ const FeedbackModal = () => {
   const isModalOpen = isOpen && type === "feedback";
   const router = useRouter();
   const { user } = useUser();
+  const { mutateAsync } = useCreateFeedback();
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -63,26 +65,10 @@ const FeedbackModal = () => {
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      const newFeedbackData = {
-        _id: Math.random(),
-        user: { name: `${user?.firstName} ${user?.lastName}` } as IUser,
-        rate: values.rate,
-        comment: values.comment,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      } as unknown as IFeedbacks;
-
-      setFeedbacks([newFeedbackData, ...feedbacks]);
-
-      await newFeedback(values); // Submit the new feedback to the server
-      form.reset();
-      handleClose();
-      toast.success("Feedback Added Successfully");
-    } catch (error: any) {
-      console.log(error.message);
-      toast.error("Something went wrong");
-    }
+    await mutateAsync({ estateId: data.data, values });
+    form.reset();
+    handleClose();
+    toast.success("Feedback Added Successfully");
   };
 
   return (

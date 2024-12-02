@@ -80,13 +80,11 @@ export const get = async (path: string) => {
 };
 
 export const deleteMethod = async (path: string) => {
-  const res = await fetch(`${envConfig.base_url}/${path}`, {
+  const res = await fetch(`${envConfig.base_url}${path}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
       Cookie: cookies().toString(),
     },
   });
-
-  console.log(res.status);
 };

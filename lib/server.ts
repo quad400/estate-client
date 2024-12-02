@@ -32,3 +32,23 @@ export const signOut = async () => {
 
   cookies().delete("_session");
 };
+
+export const getMyEstates = async (page = 1) => {
+  const res = await get(`/estates/user/my-estates?limit=3&page=${page}`);
+  return res.data;
+};
+
+export const getEstates = async (page = 1) => {
+  const res = await get(`/estates/?limit=3&page=${page}`);
+  return res.data;
+};
+
+export const getEstate = async (estateId: string) => {
+  const res = await get(`/estates/${estateId}`);
+  return res.data;
+};
+
+export const getFeedbacks = async (estateId: string, page = 1) => {
+  const res = await get(`/estates/${estateId}/feedbacks?limit=3&page=${page}`);
+  return res.data;
+};

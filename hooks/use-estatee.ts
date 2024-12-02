@@ -1,4 +1,5 @@
-import { get, patch, post } from "@/lib/endpoints";
+import { deleteMethod, get, patch, post } from "@/lib/endpoints";
+import { getEstate } from "@/lib/server";
 import { CreateEstateType } from "@/lib/types/request";
 import {
   keepPreviousData,
@@ -6,8 +7,8 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { useRouter } from "next/router";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
 export const useCreateEstate = () => {
@@ -16,7 +17,9 @@ export const useCreateEstate = () => {
   const mutation = useMutation<unknown, Error, CreateEstateType>({
     mutationFn: async (values) => await post("/estates", values),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["estates", "my-estates"] });
+      queryClient.invalidateQueries({ queryKey: ["estates"] });
+      queryClient.invalidateQueries({ queryKey: ["my-estates"] });
+      router.refresh();
       toast.success("Estate created successfully");
     },
   });
@@ -26,7 +29,6 @@ export const useCreateEstate = () => {
 
 export const useUpdateEstate = () => {
   const queryClient = useQueryClient();
-  const router = useRouter();
 
   const mutation = useMutation<
     unknown,
@@ -38,31 +40,44 @@ export const useUpdateEstate = () => {
       return await patch(`/estates/${estateId}`, values);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["estates", "my-estates"] });
+      queryClient.invalidateQueries({ queryKey: ["estates"] });
+      queryClient.invalidateQueries({ queryKey: ["my-estate"] });
       toast.success("Estate updated successfully");
     },
     onError: (error: Error) => {
-      toast.error(`Failed to update estate: ${error.message}`);
+      toast.error(`Failed to update estate`);
     },
   });
   return mutation;
 };
 
-export const useGetMyEstates = () => {
-  const [page, setPage] = useState(1);
+export const useDeleteEstate = () => {
+  const queryClient = useQueryClient();
+  const router = useRouter()
 
-  const query = useQuery({
-    queryKey: ["my-estates"],
-    queryFn: async () => {
-      const res = await get(`/estates/user/my-estates?limit=10&page=${page}`);
-      return res.data;
+  const mutation = useMutation<unknown, Error, { estateId: string }>({
+    mutationFn: async ({ estateId }) => {
+      return await deleteMethod(`/estates/${estateId}`);
     },
-    placeholderData: keepPreviousData,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-estate"] });
+      queryClient.invalidateQueries({ queryKey: ["estates"] });
+      router.refresh()
+      toast.success("Estate deleted successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to delete estate`);
+    },
   });
 
-  return {
-    query,
-    setPage,
-    page,
-  };
+  return mutation;
+};
+
+export const useGetEstate = (estateId: string) => {
+  const query = useQuery({
+    queryKey: ["get-estate", estateId],
+    queryFn: async () => await getEstate(estateId),
+  });
+
+  return query;
 };

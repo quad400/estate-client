@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { ArrowDown, Plus, Star } from "lucide-react";
 import {
   Pagination,
@@ -14,29 +14,36 @@ import { useAuth } from "@clerk/nextjs";
 import Image from "next/image";
 import { dateHandler } from "@/utils";
 import { Skeleton } from "./ui/skeleton";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { getFeedbacks } from "@/lib/server";
+import { IFeedback } from "@/lib/interfaces/feedback";
+import { useUser } from "@/hooks/use-auth";
 
 const Feedback = ({ estateId }: { estateId: string }) => {
   const { onOpen } = useModal();
-  const { isSignedIn } = useAuth();
+  const { data: userData } = useUser();
 
-  const {
-    feedbacks,
-    hasNextPage,
-    hasPrevPage,
-    loadNext,
-    loadPrev,
-    loading: feedbackLoading,
-  } = useFeedbacks(estateId);
+  const [page, setPage] = useState(1);
+
+  const { data, isPending, isPlaceholderData, isFetched, isFetching } =
+    useQuery({
+      queryKey: ["feedbacks", page],
+      queryFn: async () => await getFeedbacks(estateId, page),
+
+      placeholderData: keepPreviousData,
+    });
+
+  console.log(data);
 
   // Memoized functions to prevent re-renders
   const handleOpenFeedbackModal = useCallback(() => {
-    if (isSignedIn) {
+    if (userData) {
       onOpen("feedback", { data: estateId });
     }
-  }, [isSignedIn, onOpen, estateId]);
+  }, [userData, onOpen, estateId]);
 
   const renderFeedbacks = () => {
-    if (feedbackLoading) {
+    if (isPending) {
       return (
         <div className="flex flex-col space-y-2">
           <div className="flex space-x-2 justify-between items-center">
@@ -51,11 +58,13 @@ const Feedback = ({ estateId }: { estateId: string }) => {
       );
     }
 
-    if (feedbacks.length === 0) {
-      return <p className="text-neutral-500 text-center">No feedbacks available</p>;
+    if (isFetched && data.items.length === 0) {
+      return (
+        <p className="text-neutral-500 text-center">No feedbacks available</p>
+      );
     }
 
-    return feedbacks.map((item, index) => (
+    return data?.items.map((item: IFeedback, index: number) => (
       <div
         key={index}
         className="flex flex-col space-y-2 bg-neutral-100/30 p-4 rounded-lg"
@@ -103,7 +112,7 @@ const Feedback = ({ estateId }: { estateId: string }) => {
           </h2>
 
           <Link
-            href={!isSignedIn ? "/auth/sign-in" : ""}
+            href={!userData ? "/auth/sign-in" : ""}
             onClick={handleOpenFeedbackModal}
             className="justify-center items-center gap-2 p-2 rounded-lg bg-neutral-50 hover:bg-neutral-100 flex shadow"
             aria-label="Add New Feedback"
@@ -115,27 +124,27 @@ const Feedback = ({ estateId }: { estateId: string }) => {
           </Link>
         </div>
 
-        <div className="flex flex-col space-y-2">
-          {renderFeedbacks()}
-        </div>
+        <div className="flex flex-col space-y-2">{renderFeedbacks()}</div>
 
         {/* Pagination controls */}
-        {feedbacks.length > 0 && !feedbackLoading && (
-          <div className="mt-4 mb-8 w-full justify-center items-center flex">
+        {isFetched && data?.items.length > 0 && (
+          <div className="mt-8 mb-8 w-full justify-center items-center flex">
             <Pagination>
               <PaginationContent className="max-w-2xl flex justify-between items-center space-x-8">
                 <PaginationItem>
                   <PaginationPrevious
-                    onClick={loadPrev}
-                    disabled={!hasPrevPage}
-                    aria-label="Previous page"
+                    onClick={() => setPage((old) => Math.max(old - 1, 0))}
+                    disabled={page === 1}
                   />
                 </PaginationItem>
                 <PaginationItem>
                   <PaginationNext
-                    onClick={loadNext}
-                    disabled={!hasNextPage}
-                    aria-label="Next page"
+                    onClick={() => {
+                      if (!isPlaceholderData && data.hasNextPage) {
+                        setPage((old) => old + 1);
+                      }
+                    }}
+                    disabled={isPlaceholderData || !data?.hasNextPage}
                   />
                 </PaginationItem>
               </PaginationContent>
